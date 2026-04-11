@@ -27,6 +27,7 @@
   - [Part 2 — MongoDB Atlas API Keys](#part-2--mongodb-atlas-api-keys)
   - [Part 3 — Azure Storage Account](#part-3--azure-storage-account)
   - [Credentials Summary](#credentials-summary)
+  - [Running the Deploy Command](#running-the-deploy-command)
 - [Security Reminders](#security-reminders)
 
 ---
@@ -232,9 +233,21 @@ Private Key: 7c09e360-cf15-48e4-a760-1c16c345522c
 
 ![MongoDB Atlas — Save API Key screen](images/img-003.png)
 
-#### Step 4 · Add IP Access List *(Recommended)*
+#### Step 4 · Add IP Access List — **REQUIRED**
 
-Add your server's IP address or a CIDR range to the **IP Access List** to restrict where this key can be used from. This prevents the key from being abused if ever leaked.
+> 🚨 **CRITICAL — Do not skip this step. Skipping it will cause deployment to fail.**
+>
+> On the same screen, under **API Access List**, click **Add Access List Entry** and enter exactly:
+>
+> ```
+> 0.0.0.0/1
+> ```
+>
+> Then click **Confirm**.
+>
+> **Why is this required?** The Bartizan deploy script runs on Railway's servers, which use dynamic IP addresses that change with every deployment. It is impossible to whitelist a single fixed IP. Entering `0.0.0.0/0` allows connections from any IP address — but this is safe because access is still fully protected by your Public/Private key pair, which cannot be guessed or brute-forced.
+>
+> Without this entry, Atlas will reject every request from the deploy server and your deployment will fail with an authentication error.
 
 #### Step 5 · Click Done
 
@@ -325,28 +338,80 @@ AZURE_STORAGE_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ### Credentials Summary
 
-Once all three parts are complete, you should have the following. Create a `.env` file in the project root:
+Once all three parts are complete, create a plain text file named exactly **`config.txt`** and fill it in with your credentials using this format:
 
-```env
-# ── Railway ────────────────────────────────────────────
-RAILWAY_API_TOKEN=
-
-# ── MongoDB Atlas ──────────────────────────────────────
-MONGODB_PUBLIC_KEY=
-MONGODB_PRIVATE_KEY=
-
-# ── Azure Blob Storage ─────────────────────────────────
-AZURE_STORAGE_ACCOUNT_NAME=
-AZURE_STORAGE_ACCESS_KEY=
+```
+Railway Token: <your Railway API token>
+MongoDB Public Key: <your public key>
+MongoDB Private Key: <your private key>
+Azure Account Name: <your storage account name>
+Azure Account Key: <your storage access key>
 ```
 
-Then run the deploy script:
+A filled-in example:
+
+```
+Railway Token: 519ba7f-f564564-fsdfsd565-54sd6f4
+MongoDB Public Key: zbmuqsd
+MongoDB Private Key: 18b20388-a62d-4ef8-9ede-96d48ad45549b
+Azure Account Name: fileserver
+Azure Account Key: YTnfVXqPMfzerfzer65kHyQ6dSi8k6Fa1Jki48lWztElhM9T45646546
+```
+
+> ⚠️ Use these exact field names and spacing. The deploy script reads `config.txt` line by line — any typo in a label will cause it to fail silently.
+
+---
+
+### Running the Deploy Command
+
+> 🚨 **The most common mistake: running the command from the wrong folder.**
+>
+> The `@config.txt` argument in the curl command tells curl to look for `config.txt` in the **current directory** — the folder your terminal is open in. If the file is anywhere else, the upload will fail.
+
+#### Step 1 · Put `config.txt` in its own dedicated folder
+
+Create a folder specifically for this, for example:
+
+```
+# macOS / Linux
+~/bartizan-deploy/config.txt
+
+# Windows
+C:\Users\YourName\bartizan-deploy\config.txt
+```
+
+#### Step 2 · Open your terminal and navigate into that folder
 
 ```bash
-npm run deploy
-# or
-./deploy.sh
+# macOS / Linux
+cd ~/bartizan-deploy
+
+# Windows — Command Prompt
+cd C:\Users\YourName\bartizan-deploy
+
+# Windows — PowerShell
+Set-Location C:\Users\YourName\bartizan-deploy
 ```
+
+#### Step 3 · Verify `config.txt` is present before running anything
+
+```bash
+# macOS / Linux — you should see config.txt listed
+ls
+
+# Windows
+dir
+```
+
+If `config.txt` is not listed, stop here — move the file into this folder before continuing.
+
+#### Step 4 · Run the deploy command
+
+```bash
+curl -X POST https://bartizan-production.up.railway.app/deploy -F "config=@config.txt"
+```
+
+If successful, the terminal will print confirmation and your Bartizan server will be live.
 
 ---
 
@@ -354,12 +419,12 @@ npm run deploy
 
 | Rule | Why It Matters |
 |------|----------------|
-| 🚫 Never commit credentials to Git | Public repos are indexed — leaks happen within minutes |
-| 🔐 Use a secrets manager or password vault | Reduces the blast radius of any single breach |
-| 🔄 Rotate keys periodically | Limits the damage if a key is ever compromised |
-| 🌐 Use IP Access Lists (MongoDB Atlas) | Restricts key use to known network addresses |
-| 🔑 Keep `key1` and `key2` in sync (Azure) | Enables zero-downtime key rotation |
-| 📦 Store `.env` files outside version control | Add `.env` to your `.gitignore` |
+| 🚫 Never commit `config.txt` to Git | It contains all your credentials in plaintext — add it to `.gitignore` immediately |
+| 🔐 Delete `config.txt` after deploying | You no longer need it once the server is live |
+| 🔄 Rotate keys periodically | Limits the damage if a credential is ever compromised |
+| 🌐 The `0.0.0.0/1` rule is API-key-scoped | It only affects Atlas API access, not your database's network access rules |
+| 🔑 Keep `key1` and `key2` in sync (Azure) | Enables zero-downtime key rotation without service interruption |
+| 📦 Add `.env` and `config.txt` to `.gitignore` | Belt and suspenders — never let secrets near version control |
 
 ---
 
