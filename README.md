@@ -1,10 +1,10 @@
-# <img src="images/logo.png" width="40" alt="" align="absmiddle"/> Bartizan — Zero-Knowledge Encrypted File Server
+# <img src="images/logo.png" width="80" alt="" align="absmiddle"/> Bartizan — Zero-Knowledge Encrypted File Server
 
 > **Your files are mathematically unreadable — even if the server gets hacked. Not a promise. A cryptographic guarantee.**
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.bartizan">
-    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="200"/>
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="400"/>
   </a>
 </p>
 
