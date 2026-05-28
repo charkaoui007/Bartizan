@@ -67,7 +67,8 @@ Traditional cloud storage (Dropbox, Google Drive, iCloud) uses **server-side enc
 
 ## Security Architecture
 
-<img src="images/architecture.png" alt="Bartizan architecture" width="860"/>
+<img src="images/architec.png" alt="Bartizan architecture" width="860"/>
+
 **Data flow:**
 
 1. The Flutter client encrypts the file locally with AES-256-GCM before it ever leaves the device
