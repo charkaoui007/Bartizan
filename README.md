@@ -1,15 +1,21 @@
-# 🏰 Bartizan — Zero-Knowledge Encrypted File Server
+# <img src="images/logo.png" width="40" alt="" style="vertical-align:middle"/> Bartizan — Zero-Knowledge Encrypted File Server
+
+> **Your files are mathematically unreadable — even if the server gets hacked. Not a promise. A cryptographic guarantee.**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/security-zero--knowledge-blue?style=for-the-badge">
-  <img src="https://img.shields.io/badge/encryption-AES--256--GCM-yellow?style=for-the-badge">
-  <img src="https://img.shields.io/badge/deployment-one--command-green?style=for-the-badge">
-  <img src="https://img.shields.io/badge/backend-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white">
-  <img src="https://img.shields.io/badge/storage-Azure-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white">
-  <img src="https://img.shields.io/badge/database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
+  <a href="https://play.google.com/store/apps/details?id=com.bartizan">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="200"/>
+  </a>
 </p>
 
-> **The most secure self-hosted file server ever built. Your files are unreadable — even if the server gets hacked.**
+<p align="center">
+  <img src="https://img.shields.io/badge/Security-Zero--Knowledge-F5A623?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Encryption-AES--256--GCM-1A1A2E?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Backend-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white">
+  <img src="https://img.shields.io/badge/Storage-Azure_Blob-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white">
+  <img src="https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white">
+  <img src="https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white">
+</p>
 
 ---
 
@@ -34,55 +40,132 @@
 
 ## Why Bartizan?
 
-Traditional file hosts (Dropbox, Google Drive, etc.) store your files in plaintext. The server operator can read everything. If hackers breach the server, they get all your files. Third parties can snoop on your data.
+Traditional cloud storage (Dropbox, Google Drive, iCloud) uses **server-side encryption** — the provider holds your keys. That means they can read your files. Their employees can read your files. Any attacker who breaches their infrastructure can read your files.
 
-**Bartizan changes that.**
+**Bartizan is built differently from first principles.**
 
 - 🔒 **Zero-Knowledge** — the server never sees unencrypted data. Ever.
-- 🚀 **Self-Deployed** — deploy to your own cloud infrastructure with one command
-- 🎲 **No Enumeration** — files stored with random UUIDs, discoverable only with your API key
-- 🛡️ **Military-Grade Encryption** — AES-256-GCM with a unique IV generated per file
-- 🔑 **Hash-Only Key Storage** — only a SHA-256 hash of your API key is stored; even a stolen database cannot be used to authenticate
+- 🚀 **Self-Deployed** — your infrastructure, your rules, one command to launch
+- 🎲 **No Enumeration** — files stored as random UUIDs, invisible without your API key
+- 🛡️ **AES-256-GCM** — military-grade encryption with a unique IV per file
+- 🔑 **Hash-Only Key Storage** — only a SHA-256 hash of your API key is ever stored; a stolen database is useless
 
 ---
 
 ## How It Compares
 
-| Feature | Dropbox / Google Drive | **Bartizan** |
-|---------|------------------------|--------------|
-| **Who can read your files** | The provider + any attacker who breaches them | Nobody — not even the server operator |
-| **Deployment** | Their servers, their rules | Your own cloud, fully under your control |
-| **Encryption model** | Server-side (they hold the key) | Zero-knowledge (only you hold the key) |
-| **API Key storage** | Plaintext or reversible | SHA-256 hash only — irreversible |
-| **Filenames on disk** | Original or guessable | Random UUIDs — no information leakage |
-| **File enumeration** | Anyone with access can list files | Requires valid API key |
+| Feature                     | Dropbox / Google Drive                        | **Bartizan**                             |
+| --------------------------- | --------------------------------------------- | ---------------------------------------- |
+| **Who can read your files** | The provider + any attacker who breaches them | Nobody — not even the server operator    |
+| **Deployment**              | Their servers, their rules                    | Your own cloud, fully under your control |
+| **Encryption model**        | Server-side (they hold the key)               | Zero-knowledge (only you hold the key)   |
+| **API key storage**         | Plaintext or reversible                       | SHA-256 hash only — irreversible         |
+| **Filenames on disk**       | Original or guessable                         | Random UUIDs — no information leakage    |
+| **File enumeration**        | Anyone with access can list files             | Requires valid API key                   |
 
 ---
 
 ## Security Architecture
 
-```
-┌──────────────┐     TLS      ┌──────────────────────┐     SAS      ┌───────────────────┐
-│  Flutter App │ ──────────▶ │     Node.js API       │ ──────────▶ │   Azure Blob      │
-│  (Bartizan)  │   (HTTPS)   │   + AES-256-GCM       │   Tokens    │   Storage         │
-│              │             │                       │             │                   │
-│ PIN/Biometric│             │  • Hash API Key       │             │  [ENCRYPTED FILE] │
-│ + Local      │             │  • Rate Limiting      │             │   + UUID Name     │
-│   Encryption │             │  • Helmet headers     │             │                   │
-└──────────────┘             └──────────────────────┘             └───────────────────┘
-                                          │
-                                          ▼
-                               ┌──────────────────────┐
-                               │       MongoDB         │
-                               │     (Metadata)        │
-                               │                       │
-                               │  filename:  UUID only │
-                               │  encrypted: true      │
-                               │  owner:     key hash  │
-                               └──────────────────────┘
-```
+<div align="center">
+<table style="border-collapse:separate;border-spacing:0;background:#0a0b0e;border-radius:16px;padding:32px;width:100%;max-width:860px;font-family:'Segoe UI',system-ui,sans-serif">
+
+<!-- EYEBROW -->
+<tr><td colspan="5" style="text-align:center;padding-bottom:8px">
+<span style="font-family:monospace;font-size:10px;color:#00e5a0;letter-spacing:2px">ZERO-KNOWLEDGE · AES-256-GCM</span>
+</td></tr>
+
+<!-- TITLE -->
+<tr><td colspan="5" style="text-align:center;padding-bottom:4px">
+<span style="font-size:24px;font-weight:bold;color:#e8e6df;letter-spacing:-0.5px">How Bartizan moves your data</span>
+</td></tr>
+
+<!-- SUBTITLE -->
+<tr><td colspan="5" style="text-align:center;padding-bottom:40px">
+<span style="font-family:monospace;font-size:12px;color:#444">three hops. zero plaintext.</span>
+</td></tr>
+
+<!-- NODES ROW -->
+<tr>
+<td style="padding:24px 20px;background:#1a1230;border:1px solid #3d2a7a;border-radius:10px;vertical-align:top;width:240px">
+<div style="font-size:10px;color:#a78bfa;font-family:monospace;letter-spacing:1.5px;margin-bottom:12px">01 / CLIENT</div>
+<div style="font-size:16px;color:#e8e6df;font-weight:bold;margin-bottom:10px">Mobile app</div>
+<div style="font-size:11px;color:#6b6a64;font-family:monospace;line-height:2">Encrypts locally<br/>PIN / biometric<br/>Key never leaves device</div>
+</td>
+
+<td style="padding:0 14px;text-align:center;vertical-align:middle;white-space:nowrap">
+<div style="font-family:monospace;font-size:9px;color:#333;letter-spacing:1px;margin-bottom:4px">TLS</div>
+<div style="color:#333;font-size:16px">──▶</div>
+</td>
+
+<td style="padding:24px 20px;background:#0d1f1a;border:1px solid #0a5c3e;border-radius:10px;vertical-align:top;width:240px">
+<div style="font-size:10px;color:#00e5a0;font-family:monospace;letter-spacing:1.5px;margin-bottom:12px">02 / API</div>
+<div style="font-size:16px;color:#e8e6df;font-weight:bold;margin-bottom:10px">API server</div>
+<div style="font-size:11px;color:#6b6a64;font-family:monospace;line-height:2">Authenticates request<br/>Routes ciphertext<br/>Reads nothing</div>
+</td>
+
+<td style="padding:0 14px;text-align:center;vertical-align:middle;white-space:nowrap">
+<div style="font-family:monospace;font-size:9px;color:#333;letter-spacing:1px;margin-bottom:4px">SAS</div>
+<div style="color:#333;font-size:16px">──▶</div>
+</td>
+
+<td style="padding:24px 20px;background:#0d1828;border:1px solid #1a3d6b;border-radius:10px;vertical-align:top;width:240px">
+<div style="font-size:10px;color:#4d9eff;font-family:monospace;letter-spacing:1.5px;margin-bottom:12px">03 / STORAGE</div>
+<div style="font-size:16px;color:#e8e6df;font-weight:bold;margin-bottom:10px">Blob storage</div>
+<div style="font-size:11px;color:#6b6a64;font-family:monospace;line-height:2">Ciphertext only<br/>Random UUID name<br/>No original filename</div>
+</td>
+</tr>
+
+<!-- VERTICAL DROP -->
+<tr>
+<td colspan="5" style="text-align:center;padding:8px 0;color:#333;font-size:18px;line-height:1">│<br/>▼</td>
+</tr>
+
+<!-- DB NODE -->
+<tr>
+<td colspan="5" style="text-align:center;padding-bottom:32px">
+<table style="border-collapse:collapse;display:inline-table">
+<tr><td style="padding:22px 28px;background:#1c1608;border:1px solid #6b4a0a;border-radius:10px;text-align:left;min-width:260px">
+<div style="font-size:10px;color:#f5a623;font-family:monospace;letter-spacing:1.5px;margin-bottom:10px">↳ METADATA</div>
+<div style="font-size:16px;color:#e8e6df;font-weight:bold;margin-bottom:8px">Database</div>
+<div style="font-size:11px;color:#6b6a64;font-family:monospace;line-height:2">UUID + key hash only<br/>No file content · no original filename</div>
+</td></tr>
+</table>
+</td>
+</tr>
+
+<!-- STEP CARDS -->
+<tr>
+<td colspan="5" style="padding:0">
+<table style="border-collapse:separate;border-spacing:1px;width:100%;background:#1a1a1a;border-radius:10px;overflow:hidden">
+<tr>
+<td style="padding:20px 22px;background:#111318;width:33%;vertical-align:top">
+<div style="font-family:monospace;font-size:10px;color:#00e5a0;letter-spacing:1px;margin-bottom:8px">step_01</div>
+<div style="font-family:monospace;font-size:11px;color:#6b6a64;line-height:1.7">File encrypted on-device. Plaintext never touches the network.</div>
+</td>
+<td style="padding:20px 22px;background:#111318;width:33%;vertical-align:top;border-left:1px solid #1a1a1a">
+<div style="font-family:monospace;font-size:10px;color:#00e5a0;letter-spacing:1px;margin-bottom:8px">step_02</div>
+<div style="font-family:monospace;font-size:11px;color:#6b6a64;line-height:1.7">Encrypted blob sent over TLS. Server authenticates via key hash only.</div>
+</td>
+<td style="padding:20px 22px;background:#111318;width:33%;vertical-align:top;border-left:1px solid #1a1a1a">
+<div style="font-family:monospace;font-size:10px;color:#00e5a0;letter-spacing:1px;margin-bottom:8px">step_03</div>
+<div style="font-family:monospace;font-size:11px;color:#6b6a64;line-height:1.7">Blob stored under a random UUID. Decryption happens back on the client.</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<!-- BANNER -->
+<tr><td colspan="5" style="text-align:center;padding-top:20px">
+<span style="font-family:monospace;font-size:11px;color:#444">The server is a <span style="color:#e8e6df">blind courier</span> — a breach yields only ciphertext it cannot read</span>
+</td></tr>
+
+</table>
+</div>
 
 **Data flow:**
+
 1. The Flutter client encrypts the file locally with AES-256-GCM before it ever leaves the device
 2. The encrypted blob is transmitted over TLS to the Node.js API
 3. The API authenticates the request using only the SHA-256 hash of the API key
@@ -90,51 +173,20 @@ Traditional file hosts (Dropbox, Google Drive, etc.) store your files in plainte
 5. Metadata (UUID, hash, timestamp) is stored in MongoDB — never the file content or original name
 6. Download reverses the process; decryption happens on the client
 
----
-
-## Security Details
-
-| Property | Implementation |
-|----------|----------------|
-| **Encryption algorithm** | AES-256-GCM |
-| **IV (Initialization Vector)** | Randomly generated per file |
-| **API key format** | `rf_live_<24 random hex characters>` |
-| **API key storage** | SHA-256 hash only — the raw key is never persisted |
-| **Rate limiting** | 100 requests / 15 min globally · 20 requests / 15 min for uploads |
-| **File naming** | Random UUID — original filename never stored |
-| **Transport security** | TLS (HTTPS) enforced |
-| **HTTP hardening** | Helmet.js (security headers) |
-| **File storage** | Azure Blob Storage, accessed via short-lived SAS tokens |
-| **Metadata storage** | MongoDB (separate attack surface from file storage) |
+The server is a blind courier. It cannot read what it carries.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Backend API** | Node.js, Express, Helmet, express-rate-limit |
-| **Database** | MongoDB (metadata only — no file content) |
-| **File Storage** | Azure Blob Storage (encrypted blobs) |
-| **Frontend** | Next.js |
-| **Mobile** | Flutter |
-| **Deployment** | Railway (one-command automated CLI deploy) |
-
----
-
-## API Reference
-
-All endpoints require the `X-API-Key` header with a valid key in the format `rf_live_<24 hex chars>`.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/upload` | Upload an encrypted file |
-| `GET` | `/api/file/:name` | Retrieve file metadata by UUID |
-| `GET` | `/api/download/:name` | Download and decrypt a file |
-| `DELETE` | `/api/file/:name` | Delete a file |
-| `GET` | `/api/files` | List all files for the authenticated key |
-| `GET` | `/api/files/recent` | List recently uploaded files |
-| `GET` | `/api/search` | Search files by metadata |
+| Layer            | Technology                                      |
+| ---------------- | ----------------------------------------------- |
+| **Mobile App**   | Flutter (Android — live on Play Store)          |
+| **Backend API**  | Node.js, Express, Helmet, express-rate-limit    |
+| **Database**     | MongoDB Atlas (metadata only — no file content) |
+| **File Storage** | Azure Blob Storage (encrypted blobs)            |
+| **Web Frontend** | Next.js                                         |
+| **Deployment**   | Railway (one-command automated CLI deploy)      |
 
 ---
 
@@ -170,9 +222,9 @@ In the left sidebar, click **Tokens**. This page lists all API tokens on your ac
 
 Click **New Token** and fill in the form:
 
-| Field | What to Enter |
-|-------|---------------|
-| **Name** | e.g. `Bartizan Deploy` or `CI Token` |
+| Field         | What to Enter                                                          |
+| ------------- | ---------------------------------------------------------------------- |
+| **Name**      | e.g. `Bartizan Deploy` or `CI Token`                                   |
 | **Workspace** | Choose a workspace, or leave as `No workspace` for account-wide access |
 
 Click **Create**.
@@ -182,6 +234,7 @@ Click **Create**.
 > ⚠️ Railway shows the token **once only**. Copy it immediately and store it somewhere secure (password manager, encrypted file, secrets vault). It cannot be retrieved after you leave this page.
 
 **Save this value:**
+
 ```
 RAILWAY_API_TOKEN=rf_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
@@ -204,32 +257,17 @@ Security → Project Identity & Access → Applications → API Keys
 
 #### Step 2 · Create a New API Key
 
-Click **Create API Key** and fill in the form:
+Click **Create Application** → **API Key** in the top-right corner.
 
-| Field | What to Enter |
-|-------|---------------|
-| **Description** | e.g. `Bartizan Deploy Key` |
-| **Project Permissions** | `Project Data Access Admin` (or appropriate level) |
+![MongoDB Atlas — Applications / API Keys tab](images/img-002.png)
 
-Click **Next**.
+Set the **Project Permission** to `Project Owner` so the deploy script can fully configure the database.
 
-![MongoDB Atlas — Create API Key form](images/img-002.png)
+#### Step 3 · Save Your Key Pair
 
-#### Step 3 · Copy Your Keys — Once Only
-
-After clicking Next, Atlas displays your key pair **exactly once**:
-
-```
-Public Key:  qtnwswrk
-Private Key: 7c09e360-cf15-48e4-a760-1c16c345522c
-```
-
-> ⚠️ **Do this immediately:**
-> 1. Click **Copy** next to the Public Key
-> 2. Click **Copy** next to the Private Key
-> 3. Save both in a secure location
+> ⚠️ **The Private Key is shown exactly once.** Save both before clicking Done.
 >
-> Atlas warns: *"After you leave this page, the full private key is unavailable."* If lost, you must create a new key pair.
+> Atlas warns: _"After you leave this page, the full private key is unavailable."_ If lost, you must create a new key pair.
 
 ![MongoDB Atlas — Save API Key screen](images/img-003.png)
 
@@ -240,12 +278,12 @@ Private Key: 7c09e360-cf15-48e4-a760-1c16c345522c
 > On the same screen, under **API Access List**, click **Add Access List Entry** and enter exactly:
 >
 > ```
-> 0.0.0.0/1
+> 0.0.0.0/1 and 128.0.0.0/1
 > ```
 >
 > Then click **Confirm**.
 >
-> **Why is this required?** The Bartizan deploy script runs on Railway's servers, which use dynamic IP addresses that change with every deployment. It is impossible to whitelist a single fixed IP. Entering `0.0.0.0/0` allows connections from any IP address — but this is safe because access is still fully protected by your Public/Private key pair, which cannot be guessed or brute-forced.
+> **Why is this required?** The Bartizan deploy script runs on Railway's servers, which use dynamic IP addresses that change with every deployment. It is impossible to whitelist a single fixed IP. Entering `0.0.0.0/1` and `128.0.0.0/1` allows connections from any IP address — but this is safe because access is still fully protected by your Public/Private key pair, which cannot be guessed or brute-forced.
 >
 > Without this entry, Atlas will reject every request from the deploy server and your deployment will fail with an authentication error.
 
@@ -254,6 +292,7 @@ Private Key: 7c09e360-cf15-48e4-a760-1c16c345522c
 Your new key pair will appear in the API Keys table on the Applications page.
 
 **Save these values:**
+
 ```
 MONGODB_PUBLIC_KEY=qtnwswrk
 MONGODB_PRIVATE_KEY=7c09e360-cf15-48e4-a760-1c16c345522c
@@ -285,14 +324,14 @@ You'll land on the **Storage center** page. Click **+ Create** in the toolbar.
 
 A **Create a storage account** form will open. Fill in only the **Basics** tab:
 
-| Field | What to Enter | Notes |
-|-------|--------------|-------|
-| **Subscription** | Your subscription (e.g. `Azure for Students`) | Your Azure billing account |
-| **Resource group** | Select existing or click **Create new** | Groups related Azure resources |
-| **Storage account name** | e.g. `bartizanstorage2026` | Lowercase + numbers only, 3–24 chars, globally unique |
-| **Region** | Region closest to your users | Closer = lower latency |
-| **Performance** | Standard *(pre-selected)* | Appropriate for most deployments |
-| **Redundancy** | Locally-redundant storage (LRS) | 3 copies in one location — lowest cost |
+| Field                    | What to Enter                                 | Notes                                                 |
+| ------------------------ | --------------------------------------------- | ----------------------------------------------------- |
+| **Subscription**         | Your subscription (e.g. `Azure for Students`) | Your Azure billing account                            |
+| **Resource group**       | Select existing or click **Create new**       | Groups related Azure resources                        |
+| **Storage account name** | e.g. `bartizanstorage2026`                    | Lowercase + numbers only, 3–24 chars, globally unique |
+| **Region**               | Region closest to your users                  | Closer = lower latency                                |
+| **Performance**          | Standard _(pre-selected)_                     | Appropriate for most deployments                      |
+| **Redundancy**           | Locally-redundant storage (LRS)               | 3 copies in one location — lowest cost                |
 
 > ⚠️ The storage account name must be **globally unique** across all of Azure. If taken, append numbers (e.g. `bartizan2026b`).
 
@@ -329,6 +368,7 @@ After deployment, click **Go to resource**, then:
 ![Azure — Access keys page](images/img-009.png)
 
 **Save these values:**
+
 ```
 AZURE_STORAGE_ACCOUNT_NAME=bartizanstorage2026
 AZURE_STORAGE_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -417,17 +457,18 @@ If successful, the terminal will print confirmation and your Bartizan server wil
 
 ## Security Reminders
 
-| Rule | Why It Matters |
-|------|----------------|
-| 🚫 Never commit `config.txt` to Git | It contains all your credentials in plaintext — add it to `.gitignore` immediately |
-| 🔐 Delete `config.txt` after deploying | You no longer need it once the server is live |
-| 🔄 Rotate keys periodically | Limits the damage if a credential is ever compromised |
-| 🌐 The `0.0.0.0/1` rule is API-key-scoped | It only affects Atlas API access, not your database's network access rules |
-| 🔑 Keep `key1` and `key2` in sync (Azure) | Enables zero-downtime key rotation without service interruption |
-| 📦 Add `.env` and `config.txt` to `.gitignore` | Belt and suspenders — never let secrets near version control |
+| Rule                                           | Why It Matters                                                                     |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 🚫 Never commit `config.txt` to Git            | It contains all your credentials in plaintext — add it to `.gitignore` immediately |
+| 🔐 Delete `config.txt` after deploying         | You no longer need it once the server is live                                      |
+| 🔄 Rotate keys periodically                    | Limits the damage if a credential is ever compromised                              |
+| 🌐 The `0.0.0.0/1` rule is API-key-scoped      | It only affects Atlas API access, not your database's network access rules         |
+| 🔑 Keep `key1` and `key2` in sync (Azure)      | Enables zero-downtime key rotation without service interruption                    |
+| 📦 Add `.env` and `config.txt` to `.gitignore` | Belt and suspenders — never let secrets near version control                       |
 
 ---
 
 <p align="center">
-  <strong>Security isn't an afterthought — it's the foundation.</strong>
+  <strong>Security isn't an afterthought — it's the foundation.</strong><br/>
+  <em>Built with zero-knowledge principles. Self-hosted. Production-ready. Live on the Play Store.</em>
 </p>
