@@ -1,4 +1,4 @@
-<h1><img src="images/logo.png" width="60" alt="" align="absmiddle"/> Bartizan — Zero-Knowledge Encrypted File Server</h1>
+<h1><img src="images/logo.png" width="40" alt="" align="absmiddle"/> Bartizan — Zero-Knowledge Encrypted File Server</h1>
 
 > **Your files are mathematically unreadable — even if the server gets hacked. Not a promise. A cryptographic guarantee.**
 
